@@ -18,7 +18,8 @@ NONFREE= \
 	nonfree/i1040nr \
 	nonfree/kampo \
 	nonfree/naacl06-shinyama \
-	nonfree/nlp2004slides
+	nonfree/nlp2004slides \
+	nonfree/one-byte-identity
 
 TESTS=$(FREE) $(NONFREE)
 
