@@ -10,9 +10,9 @@ twine = "*"
 yapf = "*"
 
 [packages]
-pycryptodome = "*"
-sortedcontainers = "*"
-chardet = "*"
+chardet = "~=3.0"
+pycryptodome = "~=3.8"
+sortedcontainers = "~=2.1"
 
 [requires]
 python_version = "3.7"
