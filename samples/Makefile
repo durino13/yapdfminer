@@ -5,7 +5,6 @@ CMP=:
 ECHO=echo
 
 PDF2TXT=PYTHONPATH=.. ../tools/pdf2txt.py -p1 -V
-PDF2TXT3=PYTHONPATH=.. ../tools/pdf2txt.py -p1 -V
 
 FREE= \
 	simple1 \
@@ -34,7 +33,7 @@ CRYPTS= \
 	encryption/aes-256 \
 	encryption/aes-256-m
 
-all: tests crypts
+all: tests crypts privates
 
 tests:
 	for i in $(TESTS); do \
@@ -45,12 +44,6 @@ tests:
 		$(CMP) $$i.xml.ref $$i.xml || exit 1; \
 		$(PDF2TXT) -t text -o $$i.txt $$i.pdf || exit 1; \
 		$(CMP) $$i.txt.ref $$i.txt || exit 1; \
-		$(PDF2TXT3) -t html -o $$i.html $$i.pdf || exit 1; \
-		$(CMP) $$i.html.ref $$i.html || exit 1; \
-		$(PDF2TXT3) -t xml -o $$i.xml $$i.pdf || exit 1; \
-		$(CMP) $$i.xml.ref $$i.xml || exit 1; \
-		$(PDF2TXT3) -t text -o $$i.txt $$i.pdf || exit 1; \
-		$(CMP) $$i.txt.ref $$i.txt || exit 1; \
 	done
 
 crypts:
@@ -60,10 +53,12 @@ crypts:
 		$(CMP) $(CRYPT_BASE).xml $$i.1.xml || exit 1; \
 		$(PDF2TXT) -t xml -P $(CRYPT_PASS2) -o $$i.2.xml $$i.pdf || exit 1; \
 		$(CMP) $$i.2.xml $(CRYPT_BASE).xml || exit 1; \
-		$(PDF2TXT3) -t xml -P $(CRYPT_PASS1) -o $$i.1.xml $$i.pdf || exit 1; \
-		$(CMP) $(CRYPT_BASE).xml $$i.1.xml || exit 1; \
-		$(PDF2TXT3) -t xml -P $(CRYPT_PASS2) -o $$i.2.xml $$i.pdf || exit 1; \
-		$(CMP) $(CRYPT_BASE).xml $$i.2.xml || exit 1; \
+	done
+
+privates:
+	for i in private/*.pdf; do \
+		$(ECHO) $$i; \
+		$(PDF2TXT) -t text -o $$i.txt $$i || exit 1; \
 	done
 
 test:
@@ -76,3 +71,4 @@ clean:
 	-for i in $(CRYPTS); do \
 		$(RM) $$i.1.xml $$i.2.xml; \
 	done
+	rm private/*.txt

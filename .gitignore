@@ -6,8 +6,13 @@
 docs/_build
 build/
 dist/
+tmp/
+.eggs/
 *.egg-info/
 tests/*.xml
 tests/*.txt
 .idea/
 .tox/
+
+# A location for proprietary PDF samples for testing that won't get posted to the public repo
+samples/private/
