@@ -2,6 +2,8 @@ import struct
 import os
 import os.path
 from io import BytesIO
+from typing import BinaryIO, List
+from .layout import LTImage
 from .pdftypes import LITERALS_DCT_DECODE
 from .pdfcolor import LITERAL_DEVICE_GRAY
 from .pdfcolor import LITERAL_DEVICE_RGB
@@ -45,71 +47,120 @@ class BMPWriter(object):
                 self.fp.write(struct.pack('BBBx', i, i, i))
         self.pos0 = self.fp.tell()
         self.pos1 = self.pos0 + self.datasize
-        return
 
     def write_line(self, y, data):
         self.fp.seek(self.pos1 - (y + 1) * self.linesize)
         self.fp.write(data)
-        return
+
+
+def is_jpeg(image: LTImage) -> bool:
+    """Checks if the image is encoded in JPEG format."""
+    filters = image.stream.get_filters()
+    return len(filters) == 1 and filters[0][0] in LITERALS_DCT_DECODE
+
+
+def image_filename(image: LTImage) -> str:
+    """Returns a filename for the image, based on its name and encoding."""
+    if is_jpeg(image):
+        return f'{image.name}.jpg'
+    width, height = image.srcsize
+    if (image.bits == 1 or image.bits == 8 and
+            (LITERAL_DEVICE_RGB in image.colorspace or LITERAL_DEVICE_GRAY in image.colorspace)):
+        ext = f'.{width}x{height}.bmp'
+    else:
+        ext = f'.{image.bits}.{width}x{height}.img'
+    return image.name + ext
+
+
+def dump_image(image: LTImage, fp: BinaryIO):
+    """Write the image to a file-like object.
+
+    Args:
+        image: An LTImage component from a PDF.
+        fp: A binary file-like object, such as the result of `open(.., 'wb')` or a BytesIO.
+    """
+    width, height = image.srcsize
+    if is_jpeg(image):
+        raw_data = image.stream.get_rawdata()
+        if LITERAL_DEVICE_CMYK in image.colorspace:
+            from PIL import Image
+            from PIL import ImageChops
+            ifp = BytesIO(raw_data)
+            i = Image.open(ifp)
+            i = ImageChops.invert(i)
+            i = i.convert('RGB')
+            i.save(fp, 'JPEG')
+        else:
+            fp.write(raw_data)
+    elif image.bits == 1:
+        bmp = BMPWriter(fp, 1, width, height)
+        data = image.stream.get_data()
+        i = 0
+        width = (width + 7) // 8
+        for y in range(height):
+            bmp.write_line(y, data[i:i + width])
+            i += width
+    elif image.bits == 8 and LITERAL_DEVICE_RGB in image.colorspace:
+        bmp = BMPWriter(fp, 24, width, height)
+        data = image.stream.get_data()
+        i = 0
+        width = width * 3
+        for y in range(height):
+            bmp.write_line(y, data[i:i + width])
+            i += width
+    elif image.bits == 8 and LITERAL_DEVICE_GRAY in image.colorspace:
+        bmp = BMPWriter(fp, 8, width, height)
+        data = image.stream.get_data()
+        i = 0
+        for y in range(height):
+            bmp.write_line(y, data[i:i + width])
+            i += width
+    else:
+        fp.write(image.stream.get_data())
 
 
 class ImageWriter(object):
-    def __init__(self, outdir):
+    """Writes images from a PDF to files in some directory."""
+
+    def __init__(self, outdir: str):
+        """Initialize an ImageWriter with an output directory.
+
+        Args:
+            outdir: The directory to which image files are written.
+        """
         self.outdir = outdir
         if not os.path.exists(self.outdir):
             os.makedirs(self.outdir)
-        return
 
-    def export_image(self, image):
-        stream = image.stream
-        filters = stream.get_filters()
-        (width, height) = image.srcsize
-        if len(filters) == 1 and filters[0][0] in LITERALS_DCT_DECODE:
-            ext = '.jpg'
-        elif (image.bits == 1 or image.bits == 8 and
-              (LITERAL_DEVICE_RGB in image.colorspace or LITERAL_DEVICE_GRAY in image.colorspace)):
-            ext = '.%dx%d.bmp' % (width, height)
-        else:
-            ext = '.%d.%dx%d.img' % (image.bits, width, height)
-        name = image.name + ext
-        path = os.path.join(self.outdir, name)
-        fp = open(path, 'wb')
-        if ext == '.jpg':
-            raw_data = stream.get_rawdata()
-            if LITERAL_DEVICE_CMYK in image.colorspace:
-                from PIL import Image
-                from PIL import ImageChops
-                ifp = BytesIO(raw_data)
-                i = Image.open(ifp)
-                i = ImageChops.invert(i)
-                i = i.convert('RGB')
-                i.save(fp, 'JPEG')
-            else:
-                fp.write(raw_data)
-        elif image.bits == 1:
-            bmp = BMPWriter(fp, 1, width, height)
-            data = stream.get_data()
-            i = 0
-            width = (width + 7) // 8
-            for y in range(height):
-                bmp.write_line(y, data[i:i + width])
-                i += width
-        elif image.bits == 8 and LITERAL_DEVICE_RGB in image.colorspace:
-            bmp = BMPWriter(fp, 24, width, height)
-            data = stream.get_data()
-            i = 0
-            width = width * 3
-            for y in range(height):
-                bmp.write_line(y, data[i:i + width])
-                i += width
-        elif image.bits == 8 and LITERAL_DEVICE_GRAY in image.colorspace:
-            bmp = BMPWriter(fp, 8, width, height)
-            data = stream.get_data()
-            i = 0
-            for y in range(height):
-                bmp.write_line(y, data[i:i + width])
-                i += width
-        else:
-            fp.write(stream.get_data())
-        fp.close()
-        return name
+    def export_image(self, image: LTImage) -> str:
+        """Save the image to a file in outdir
+
+        Args:
+            image: An LTImage component from a PDF.
+
+        Returns:
+            The filename of the new image file (excluding the directory).
+        """
+        filename = image_filename(image)
+        with open(os.path.join(self.outdir, filename), 'wb') as fp:
+            dump_image(image, fp)
+        return filename
+
+
+class ImageCollector(object):
+    """Collects LTImage's during PDF interpretation.
+
+    This class lets you collect images from a PDF in a converter, such as pdfminer.converter.TextConverter
+    but avoid writing them straight to files, as the original ImageWriter does.
+    """
+
+    def __init__(self):
+        self.images: List[LTImage] = []
+
+    def export_image(self, image: LTImage):
+        """Add the image to the collection.
+
+        Args:
+            image: An LTImage component from a PDF.
+        """
+        self.images.append(image)
