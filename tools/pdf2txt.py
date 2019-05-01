@@ -35,9 +35,8 @@ def extract_text(
         output_dir=None,
         debug=False,
         disable_caching=False,
+        check_extractable=False,
         **other):
-    if _py2_no_more_posargs is not None:
-        raise ValueError("Too many positional arguments passed.")
     if not files:
         raise ValueError("Must provide files to work upon!")
 
@@ -110,6 +109,7 @@ def maketheparser():
     parser.add_argument("-O", "--output-dir", default=None, help="Output directory for images")
     parser.add_argument("-C", "--disable-caching", default=False, action="store_true", help="Disable caching")
     parser.add_argument("-S", "--strip-control", default=False, action="store_true", help="Strip control in XML mode")
+    parser.add_argument("-x", "--check-extractable", default=False, action="store_true")
     return parser
 
 

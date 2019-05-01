@@ -31,6 +31,7 @@ def extract_text_to_fp(
         strip_control=False,
         debug=False,
         disable_caching=False,
+        check_extractable=True,
         **other):
     """
     Parses text from inf-file and writes to outfp file-like object.
@@ -84,7 +85,7 @@ def extract_text_to_fp(
     interpreter = PDFPageInterpreter(rsrcmgr, device)
     for page in PDFPage.get_pages(
             inf, page_numbers, maxpages=maxpages, password=password, caching=not disable_caching,
-            check_extractable=True):
+            check_extractable=check_extractable):
         page.rotate = (page.rotate + rotation) % 360
         interpreter.process_page(page)
 
