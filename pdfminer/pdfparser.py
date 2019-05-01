@@ -48,6 +48,7 @@ class PDFParser(PSStackParser):
 
     KEYWORD_R = KWD(b'R')
     KEYWORD_NULL = KWD(b'null')
+    KEYWORD_OBJ = KWD(b'obj')
     KEYWORD_ENDOBJ = KWD(b'endobj')
     KEYWORD_STREAM = KWD(b'stream')
     KEYWORD_XREF = KWD(b'xref')
@@ -55,19 +56,19 @@ class PDFParser(PSStackParser):
 
     def do_keyword(self, pos, token):
         """Handles PDF-related keywords."""
-
         if token in (self.KEYWORD_XREF, self.KEYWORD_STARTXREF):
             self.add_results(*self.pop(1))
-
+        elif token is self.KEYWORD_OBJ:  # Handle implicit endobj in some bugged PDFs
+            if len(self.curstack) > 2:
+                stack = self.popall()
+                self.add_results(*stack[0:-2])
+                self.push(*stack[-2:])
+            self.push((pos, token))
         elif token is self.KEYWORD_ENDOBJ:
             self.add_results(*self.pop(4))
-
-        elif token is self.KEYWORD_NULL:
-            # null object
+        elif token is self.KEYWORD_NULL:  # null object
             self.push((pos, None))
-
-        elif token is self.KEYWORD_R:
-            # reference to indirect object
+        elif token is self.KEYWORD_R:  # reference to indirect object
             try:
                 ((_, objid), (_, genno)) = self.pop(2)
                 (objid, genno) = (int(objid), int(genno))
@@ -75,9 +76,7 @@ class PDFParser(PSStackParser):
                 self.push((pos, obj))
             except PSSyntaxError:
                 pass
-
-        elif token is self.KEYWORD_STREAM:
-            # stream object
+        elif token is self.KEYWORD_STREAM:  # stream object
             ((_, dic), ) = self.pop(1)
             dic = dict_value(dic)
             objlen = 0
@@ -120,12 +119,8 @@ class PDFParser(PSStackParser):
             log.debug('Stream: pos=%d, objlen=%d, dic=%r, data=%r...', pos, objlen, dic, data[:10])
             obj = PDFStream(dic, data, self.doc.decipher)
             self.push((pos, obj))
-
-        else:
-            # others
+        else:  # others
             self.push((pos, token))
-
-        return
 
 
 class PDFStreamParser(PDFParser):
