@@ -15,6 +15,7 @@ from . import settings
 from .psparser import PSLiteral
 from .psparser import literal_name
 from .pdftypes import PDFException
+from .pdftypes import PDFStream
 from .pdftypes import resolve1
 from .pdftypes import int_value
 from .pdftypes import num_value
@@ -775,7 +776,6 @@ LITERAL_STANDARD_ENCODING = LIT('StandardEncoding')
 LITERAL_TYPE1C = LIT('Type1C')
 
 
-# PDFFont
 class PDFFont(object):
     def __init__(self, descriptor, widths, default_width=None):
         self.descriptor = descriptor
@@ -839,7 +839,6 @@ class PDFFont(object):
         return sum(self.char_width(cid) for cid in self.decode(s))
 
 
-# PDFSimpleFont
 class PDFSimpleFont(PDFFont):
     def __init__(self, descriptor, widths, spec):
         # Font encoding is specified either by a name of
@@ -875,7 +874,6 @@ class PDFSimpleFont(PDFFont):
             raise PDFUnicodeNotDefined(None, cid)
 
 
-# PDFType1Font
 class PDFType1Font(PDFSimpleFont):
     def __init__(self, rsrcmgr, spec):
         try:
@@ -906,13 +904,11 @@ class PDFType1Font(PDFSimpleFont):
         return '<PDFType1Font: basefont=%r>' % self.basefont
 
 
-# PDFTrueTypeFont
 class PDFTrueTypeFont(PDFType1Font):
     def __repr__(self):
         return '<PDFTrueTypeFont: basefont=%r>' % self.basefont
 
 
-# PDFType3Font
 class PDFType3Font(PDFSimpleFont):
     def __init__(self, rsrcmgr, spec):
         firstchar = int_value(spec.get('FirstChar', 0))
@@ -933,7 +929,6 @@ class PDFType3Font(PDFSimpleFont):
         return '<PDFType3Font>'
 
 
-# PDFCIDFont
 class PDFCIDFont(PDFFont):
     def __init__(self, rsrcmgr, spec, strict=settings.STRICT):
         try:
@@ -955,6 +950,17 @@ class PDFCIDFont(PDFFont):
             if strict:
                 raise PDFFontError('Encoding is unspecified')
             name = 'unknown'
+        if type(name) is PDFStream:
+            if 'CMapName' in name:
+                name = name.get('CMapName').name
+                if name == 'DLIdent-H':
+                    name = 'Identity-H'
+                elif name == 'DLIdent-V':
+                    name = 'Identity-V'
+            else:
+                if strict:
+                    raise PDFFontError('Encoding is unspecified')
+                name = 'unknown'
         try:
             self.cmap = CMapDB.get_cmap(name)
         except CMapDB.CMapNotFound as e:
@@ -1031,7 +1037,6 @@ class PDFCIDFont(PDFFont):
             raise PDFUnicodeNotDefined(self.cidcoding, cid)
 
 
-# main
 def main(argv):
     for fname in argv[1:]:
         fp = open(fname, 'rb')
