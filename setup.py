@@ -1,28 +1,29 @@
-from setuptools import setup
-import sys
+import setuptools
 
-import pdfminer3 as package
 
-requires = ['pycryptodome', 'sortedcontainers']
-if sys.version_info >= (3, 0):
-    requires.append('chardet')
+with open('README.md') as f:
+    long_description = f.read()
 
-setup(
-    name='pdfminer3',
-    version=package.__version__,
-    packages=['pdfminer3'],
-    package_data={'pdfminer3': ['cmap/*.pickle.gz']},
-    install_requires=requires,
+
+setuptools.setup(
+    name='yapdfminer',
+    use_scm_version=True,
     description='PDF parser and analyzer',
-    long_description=package.__doc__,
-    license='MIT/X',
-    author='Yusuke Shinyama & contributors',
-    author_email='george.w.king@gmail.com',
-    url='https://github.com/gwk/pdfminer3',
-    scripts=[
-        'tools/pdf2txt.py',
-        'tools/dumppdf.py',
-        'tools/latin2ascii.py',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    url='https://github.com/eladkehat/yapdfminer',
+    author='Elad Kehat',
+    author_email='eladkehat@gmail.com',
+    license='MIT',
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3.7',
+        'Topic :: Text Processing',
     ],
     keywords=[
         'pdf',
@@ -31,14 +32,17 @@ setup(
         'layout analysis',
         'text mining',
     ],
-    classifiers=[
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3.7',
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
-        'Topic :: Text Processing',
+    packages=setuptools.find_packages(exclude=['cmaprsrc', 'docs', 'samples', 'tests', 'tools']),
+    python_requires='>=3.7',
+    install_requires=[
+        'chardet ~= 3.0',
+        'pycryptodome ~= 3.8',
+        'sortedcontainers ~= 2.1',
     ],
+    setup_requires=['setuptools_scm'],
+    scripts=[
+        'tools/pdf2txt.py',
+        'tools/dumppdf.py',
+        'tools/latin2ascii.py',
+    ]
 )
