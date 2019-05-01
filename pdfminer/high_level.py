@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Functions that encapsulate "usual" use-cases for pdfminer3, for use making
-bundled scripts and for using pdfminer3 as a module for routine tasks.
+Functions that encapsulate "usual" use-cases for pdfminer, for use making
+bundled scripts and for using pdfminer as a module for routine tasks.
 """
 
 import sys
@@ -30,14 +30,14 @@ def extract_text_to_fp(inf, outfp,
 
     output_type: May be 'text', 'xml', 'html', 'tag'. Only 'text' works properly.
     codec: Text decoding codec
-    laparams: An LAParams object from pdfminer3.layout.
+    laparams: An LAParams object from pdfminer.layout.
         Default is None but may not layout correctly.
     maxpages: How many pages to stop parsing after
     page_numbers: zero-indexed page numbers to operate on.
     password: For encrypted PDFs, the password to decrypt.
     scale: Scale factor
     rotation: Rotation factor
-    layoutmode: Default is 'normal', see pdfminer3.converter.HTMLConverter
+    layoutmode: Default is 'normal', see pdfminer.converter.HTMLConverter
     output_dir: If given, creates an ImageWriter for extracted images.
     strip_control: Does what it says on the tin
     debug: Output more logging data

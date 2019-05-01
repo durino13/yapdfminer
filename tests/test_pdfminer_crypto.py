@@ -1,16 +1,14 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
+#!/usr/bin/env python3
 from nose.tools import assert_equal
 from nose import SkipTest
 import nose
 
 #test of various compression/encoding modules (previously in doctests):
-from pdfminer3.ascii85 import *
-from pdfminer3.arcfour import *
-from pdfminer3.lzw import *
-from pdfminer3.runlength import *
-from pdfminer3.rijndael import *
+from pdfminer.ascii85 import *
+from pdfminer.arcfour import *
+from pdfminer.lzw import *
+from pdfminer.runlength import *
+from pdfminer.rijndael import *
 
 import binascii
 def hex(b): return binascii.hexlify(b) #encode('hex')

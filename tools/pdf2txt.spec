@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['pdf2txt.py'],
-             pathex=['C:\\Dev\\Python\\pdfminer3\\tools'],
+             pathex=['C:\\Dev\\Python\\pdfminer\\tools'],
              binaries=[],
              datas=[],
              hiddenimports=[],

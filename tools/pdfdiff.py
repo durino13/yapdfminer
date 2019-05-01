@@ -6,10 +6,10 @@ compares rwo pdf files.
 import io
 import sys
 import logging
-import pdfminer3.settings
-pdfminer3.settings.STRICT = False
-import pdfminer3.high_level
-import pdfminer3.layout
+import pdfminer.settings
+pdfminer.settings.STRICT = False
+import pdfminer.high_level
+import pdfminer.layout
 
 def compare(file1,file2,**args):
     if args.get('_py2_no_more_posargs', None) is not None:
@@ -19,7 +19,7 @@ def compare(file1,file2,**args):
     # If any LAParams group arguments were passed, create an LAParams object and
     # populate with given args. Otherwise, set it to None.
     if args.get('laparams', None) is None:
-        laparams = pdfminer3.layout.LAParams()
+        laparams = pdfminer.layout.LAParams()
         for param in ("all_texts", "detect_vertical", "word_margin", "char_margin", "line_margin", "boxes_flow"):
             paramv = args.get(param, None)
             if paramv is not None:
@@ -28,11 +28,11 @@ def compare(file1,file2,**args):
 
     s1 = io.StringIO()
     with open(file1, "rb") as fp:
-        pdfminer3.high_level.extract_text_to_fp(fp, s1, **args)
+        pdfminer.high_level.extract_text_to_fp(fp, s1, **args)
 
     s2 = io.StringIO()
     with open(file2, "rb") as fp:
-        pdfminer3.high_level.extract_text_to_fp(fp, s2, **args)
+        pdfminer.high_level.extract_text_to_fp(fp, s2, **args)
 
     import difflib
     s1.seek(0)

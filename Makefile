@@ -1,7 +1,7 @@
 ##  Makefile (for maintenance purpose)
 ##
 
-PACKAGE=pdfminer3
+PACKAGE=pdfminer
 
 GIT=git
 RM=rm -f
@@ -33,7 +33,7 @@ publish:
 
 CONV_CMAP=python3 tools/conv_cmap.py
 CMAPSRC=cmaprsrc
-CMAPDST=pdfminer3/cmap
+CMAPDST=pdfminer/cmap
 cmap: $(CMAPDST)/to-unicode-Adobe-CNS1.pickle.gz $(CMAPDST)/to-unicode-Adobe-GB1.pickle.gz \
 	$(CMAPDST)/to-unicode-Adobe-Japan1.pickle.gz $(CMAPDST)/to-unicode-Adobe-Korea1.pickle.gz
 cmap_clean:

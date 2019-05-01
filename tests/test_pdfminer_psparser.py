@@ -1,14 +1,11 @@
-#!/usr/bin/env python
-
-# -*- coding: utf-8 -*-
-
+#!/usr/bin/env python3
 from nose.tools import assert_equal, assert_true, assert_false
 from nose import SkipTest
 import nose
 
 import logging
 
-from pdfminer3.psparser import *
+from pdfminer.psparser import *
 
 ##  Simplistic Test cases
 ##

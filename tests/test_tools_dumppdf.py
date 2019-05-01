@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import nose, logging, os
 from tools import dumppdf
 

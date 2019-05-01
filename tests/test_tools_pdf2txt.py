@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-
-# -*- coding: utf-8 -*-
-
+#!/usr/bin/env python3
 import nose, logging, os
 
 import tools.pdf2txt as pdf2txt
