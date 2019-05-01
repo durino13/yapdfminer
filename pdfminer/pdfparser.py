@@ -71,9 +71,13 @@ class PDFParser(PSStackParser):
         elif token is self.KEYWORD_R:  # reference to indirect object
             try:
                 ((_, objid), (_, genno)) = self.pop(2)
-                (objid, genno) = (int(objid), int(genno))
-                obj = PDFObjRef(self.doc, objid, genno)
-                self.push((pos, obj))
+                try:
+                    (objid, genno) = (int(objid), int(genno))
+                except TypeError:
+                    pass
+                else:
+                    obj = PDFObjRef(self.doc, objid, genno)
+                    self.push((pos, obj))
             except PSSyntaxError:
                 pass
         elif token is self.KEYWORD_STREAM:  # stream object
