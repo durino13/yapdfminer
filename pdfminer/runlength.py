@@ -1,10 +1,7 @@
-
-#
 # RunLength decoder (Adobe version) implementation based on PDF Reference
 # version 1.4 section 3.3.4.
 #
 #  * public domain *
-#
 
 
 def rldecode(data):
@@ -29,15 +26,14 @@ def rldecode(data):
         if length == 128:
             break
         if length >= 0 and length < 128:
-            for j in range(i+1, (i+1)+(length+1)):
-                decoded += bytes((data[j],))
+            for j in range(i + 1, (i + 1) + (length + 1)):
+                decoded += bytes((data[j], ))
             #print 'length=%d, run=%s' % (length+1,run)
 
-            i = (i+1) + (length+1)
+            i = (i + 1) + (length + 1)
         if length > 128:
-            run = bytes((data[i+1],))*(257-length)
+            run = bytes((data[i + 1], )) * (257 - length)
             #print 'length=%d, run=%s' % (257-length,run)
-            decoded+=run
-            i = (i+1) + 1
+            decoded += run
+            i = (i + 1) + 1
     return decoded
-

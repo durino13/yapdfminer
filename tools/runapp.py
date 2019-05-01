@@ -13,8 +13,7 @@ from http.client import responses
 from http.server import HTTPServer
 from http.server import SimpleHTTPRequestHandler
 
-##  WebAppHandler
-##
+
 class WebAppHandler(SimpleHTTPRequestHandler):
 
     APP_CLASS = None
@@ -29,7 +28,7 @@ class WebAppHandler(SimpleHTTPRequestHandler):
         rest = self.path
         i = rest.rfind('?')
         if i >= 0:
-            rest, query = rest[:i], rest[i+1:]
+            rest, query = rest[:i], rest[i + 1:]
         else:
             query = ''
         i = rest.find('/')
@@ -76,8 +75,7 @@ class WebAppHandler(SimpleHTTPRequestHandler):
         co = [_f for _f in self.headers.getheaders('cookie') if _f]
         if co:
             env['HTTP_COOKIE'] = ', '.join(co)
-        for k in ('QUERY_STRING', 'REMOTE_HOST', 'CONTENT_LENGTH',
-                  'HTTP_USER_AGENT', 'HTTP_COOKIE'):
+        for k in ('QUERY_STRING', 'REMOTE_HOST', 'CONTENT_LENGTH', 'HTTP_USER_AGENT', 'HTTP_COOKIE'):
             env.setdefault(k, "")
         app = self.APP_CLASS(infp=self.rfile, outfp=self.wfile, environ=env)
         status = app.setup()
@@ -85,12 +83,14 @@ class WebAppHandler(SimpleHTTPRequestHandler):
         app.run()
         return
 
-# main
+
 def main(argv):
     import getopt, imp
+
     def usage():
         print(('usage: %s [-h host] [-p port] [-n name] module.class' % argv[0]))
         return 100
+
     try:
         (opts, args) = getopt.getopt(argv[1:], 'h:p:n:')
     except getopt.GetoptError:
@@ -110,5 +110,6 @@ def main(argv):
     httpd = HTTPServer((host, port), WebAppHandler)
     httpd.serve_forever()
     return
+
 
 if __name__ == '__main__': sys.exit(main(sys.argv))

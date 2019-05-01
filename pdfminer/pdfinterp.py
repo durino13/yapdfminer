@@ -1,4 +1,3 @@
-
 import re
 import logging
 from io import BytesIO
@@ -31,29 +30,29 @@ from .utils import choplist
 from .utils import mult_matrix
 from .utils import MATRIX_IDENTITY
 
-
 log = logging.getLogger(__name__)
 
-##  Exceptions
-##
+
+# Exceptions
+
 class PDFResourceError(PDFException):
     pass
+
 
 class PDFInterpreterError(PDFException):
     pass
 
-##  Constants
-##
+
+# Constants
+
 LITERAL_PDF = LIT('PDF')
 LITERAL_TEXT = LIT('Text')
 LITERAL_FONT = LIT('Font')
 LITERAL_FORM = LIT('Form')
 LITERAL_IMAGE = LIT('Image')
 
-##  PDFTextState
-##
-class PDFTextState(object):
 
+class PDFTextState(object):
     def __init__(self):
         self.font = None
         self.fontsize = 0
@@ -71,10 +70,8 @@ class PDFTextState(object):
     def __repr__(self):
         return ('<PDFTextState: font=%r, fontsize=%r, charspace=%r, wordspace=%r, '
                 ' scaling=%r, leading=%r, render=%r, rise=%r, '
-                ' matrix=%r, linematrix=%r>' %
-                (self.font, self.fontsize, self.charspace, self.wordspace,
-                 self.scaling, self.leading, self.render, self.rise,
-                 self.matrix, self.linematrix))
+                ' matrix=%r, linematrix=%r>' % (self.font, self.fontsize, self.charspace, self.wordspace, self.scaling,
+                                                self.leading, self.render, self.rise, self.matrix, self.linematrix))
 
     def copy(self):
         obj = PDFTextState()
@@ -96,10 +93,7 @@ class PDFTextState(object):
         return
 
 
-##  PDFGraphicState
-##
 class PDFGraphicState(object):
-
     def __init__(self):
         self.linewidth = 0
         self.linecap = None
@@ -133,15 +127,11 @@ class PDFGraphicState(object):
         return ('<PDFGraphicState: linewidth=%r, linecap=%r, linejoin=%r, '
                 ' miterlimit=%r, dash=%r, intent=%r, flatness=%r, '
                 ' stroking color=%r, non stroking color=%r>' %
-                (self.linewidth, self.linecap, self.linejoin,
-                 self.miterlimit, self.dash, self.intent, self.flatness,
+                (self.linewidth, self.linecap, self.linejoin, self.miterlimit, self.dash, self.intent, self.flatness,
                  self.scolor, self.ncolor))
 
 
-##  Resource Manager
-##
 class PDFResourceManager(object):
-
     """Repository of shared resources.
 
     ResourceManager facilitates reuse of shared resources
@@ -218,10 +208,7 @@ class PDFResourceManager(object):
         return font
 
 
-##  PDFContentParser
-##
 class PDFContentParser(PSStackParser):
-
     def __init__(self, streams):
         self.streams = streams
         self.istream = 0
@@ -264,12 +251,12 @@ class PDFContentParser(PSStackParser):
             self.fillbuf()
             if i:
                 c = self.buf[self.charpos]
-                c = bytes((c,))
+                c = bytes((c, ))
                 data += c
                 self.charpos += 1
                 if len(target) <= i and c.isspace():
                     i += 1
-                elif i < len(target) and c == bytes((target[i],)):
+                elif i < len(target) and c == bytes((target[i], )):
                     i += 1
                 else:
                     i = 0
@@ -277,13 +264,13 @@ class PDFContentParser(PSStackParser):
                 try:
                     j = self.buf.index(target[0], self.charpos)
                     #print 'found', (0, self.buf[j:j+10])
-                    data += self.buf[self.charpos:j+1]
-                    self.charpos = j+1
+                    data += self.buf[self.charpos:j + 1]
+                    self.charpos = j + 1
                     i = 1
                 except ValueError:
                     data += self.buf[self.charpos:]
                     self.charpos = len(self.buf)
-        data = data[:-(len(target)+1)]  # strip the last part
+        data = data[:-(len(target) + 1)]  # strip the last part
         data = re.sub(br'(\x0d\x0a|[\x0d\x0a])$', b'', data)
         return (pos, data)
 
@@ -305,7 +292,7 @@ class PDFContentParser(PSStackParser):
                 if len(objs) % 2 != 0:
                     raise PSTypeError('Invalid dictionary construct: %r' % objs)
                 d = dict((literal_name(k), v) for (k, v) in choplist(2, objs))
-                (pos, data) = self.get_inline_data(pos+len(b'ID '))
+                (pos, data) = self.get_inline_data(pos + len(b'ID '))
                 obj = PDFStream(d, data)
                 self.push((pos, obj))
                 self.push((pos, self.KEYWORD_EI))
@@ -317,10 +304,7 @@ class PDFContentParser(PSStackParser):
         return
 
 
-##  Interpreter
-##
 class PDFPageInterpreter(object):
-
     def __init__(self, rsrcmgr, device):
         self.rsrcmgr = rsrcmgr
         self.device = device
@@ -350,6 +334,7 @@ class PDFPageInterpreter(object):
                 return PDFColorSpace(name, len(list_value(spec[1])))
             else:
                 return PREDEFINED_COLORSPACE.get(name)
+
         for (k, v) in dict_value(resources).items():
             log.debug('Resource: %r: %r', k, v)
             if k == 'Font':
@@ -490,16 +475,16 @@ class PDFPageInterpreter(object):
 
     # closepath
     def do_h(self):
-        self.curpath.append(('h',))
+        self.curpath.append(('h', ))
         return
 
     # rectangle
     def do_re(self, x, y, w, h):
         self.curpath.append(('m', x, y))
-        self.curpath.append(('l', x+w, y))
-        self.curpath.append(('l', x+w, y+h))
-        self.curpath.append(('l', x, y+h))
-        self.curpath.append(('h',))
+        self.curpath.append(('l', x + w, y))
+        self.curpath.append(('l', x + w, y + h))
+        self.curpath.append(('l', x, y + h))
+        self.curpath.append(('h', ))
         return
 
     # stroke
@@ -519,6 +504,7 @@ class PDFPageInterpreter(object):
         self.device.paint_path(self.graphicstate, False, True, False, self.curpath)
         self.curpath = []
         return
+
     # fill (obsolete)
     do_F = do_f
 
@@ -734,7 +720,7 @@ class PDFPageInterpreter(object):
     # text-move
     def do_Td(self, tx, ty):
         (a, b, c, d, e, f) = self.textstate.matrix
-        self.textstate.matrix = (a, b, c, d, tx*a+ty*c+e, tx*b+ty*d+f)
+        self.textstate.matrix = (a, b, c, d, tx * a + ty * c + e, tx * b + ty * d + f)
         self.textstate.linematrix = (0, 0)
         #print >>sys.stderr, 'Td(%r,%r): %r' % (tx, ty, self.textstate)
         return
@@ -742,7 +728,7 @@ class PDFPageInterpreter(object):
     # text-move
     def do_TD(self, tx, ty):
         (a, b, c, d, e, f) = self.textstate.matrix
-        self.textstate.matrix = (a, b, c, d, tx*a+ty*c+e, tx*b+ty*d+f)
+        self.textstate.matrix = (a, b, c, d, tx * a + ty * c + e, tx * b + ty * d + f)
         self.textstate.leading = ty
         self.textstate.linematrix = (0, 0)
         #print >>sys.stderr, 'TD(%r,%r): %r' % (tx, ty, self.textstate)
@@ -757,7 +743,7 @@ class PDFPageInterpreter(object):
     # nextline
     def do_T_a(self):
         (a, b, c, d, e, f) = self.textstate.matrix
-        self.textstate.matrix = (a, b, c, d, self.textstate.leading*c+e, self.textstate.leading*d+f)
+        self.textstate.matrix = (a, b, c, d, self.textstate.leading * c + e, self.textstate.leading * d + f)
         self.textstate.linematrix = (0, 0)
         return
 
@@ -856,8 +842,7 @@ class PDFPageInterpreter(object):
     #   Render the content streams.
     #   This method may be called recursively.
     def render_contents(self, resources, streams, ctm=MATRIX_IDENTITY):
-        log.info('render_contents: resources=%r, streams=%r, ctm=%r',
-                 resources, streams, ctm)
+        log.info('render_contents: resources=%r, streams=%r, ctm=%r', resources, streams, ctm)
         self.init_resources(resources)
         self.init_state(ctm)
         self.execute(list_value(streams))
@@ -879,7 +864,7 @@ class PDFPageInterpreter(object):
                 method = 'do_%s' % name.replace('*', '_a').replace('"', '_w').replace("'", '_q')
                 if hasattr(self, method):
                     func = getattr(self, method)
-                    nargs = func.__code__.co_argcount-1
+                    nargs = func.__code__.co_argcount - 1
                     if nargs:
                         args = self.pop(nargs)
                         log.debug('exec: %s %r', name, args)

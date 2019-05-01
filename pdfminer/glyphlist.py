@@ -1,5 +1,3 @@
-
-
 """ Mappings from Adobe glyph names to Unicode characters.
 
 In some CMap tables, Adobe glyph names are used for specifying
@@ -9,7 +7,6 @@ The following data was taken by
 
   $ wget https://partners.adobe.com/public/developer/en/opentype/glyphlist.txt
   $ python tools/conv_glyphlist.py glyphlist.txt > glyphlist.py
-
 """
 
 # ###################################################################################
@@ -4336,4 +4333,3 @@ glyphname2unicode = {
  'zuhiragana': '\u305A',
  'zukatakana': '\u30BA',
 }
-#--end

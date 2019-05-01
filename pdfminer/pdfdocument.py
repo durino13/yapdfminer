@@ -1,8 +1,6 @@
-
 import re
 import struct
 import logging
-
 
 try:
     import hashlib as md5
@@ -36,28 +34,34 @@ from .utils import choplist
 from .utils import nunpack
 from .utils import decode_text
 
-
 log = logging.getLogger(__name__)
 
-##  Exceptions
-##
+
+# Exceptions
+
 class PDFNoValidXRef(PDFSyntaxError):
     pass
+
 
 class PDFNoOutlines(PDFException):
     pass
 
+
 class PDFDestinationNotFound(PDFException):
     pass
+
 
 class PDFEncryptionError(PDFException):
     pass
 
+
 class PDFPasswordIncorrect(PDFEncryptionError):
     pass
 
+
 class PDFTextExtractionNotAllowed(PDFEncryptionError):
     pass
+
 
 # some predefined literals and keywords.
 LITERAL_OBJSTM = LIT('ObjStm')
@@ -65,10 +69,9 @@ LITERAL_XREF = LIT('XRef')
 LITERAL_CATALOG = LIT('Catalog')
 
 
-##  XRefs
-##
-class PDFBaseXRef(object):
+# XRefs
 
+class PDFBaseXRef(object):
     def get_trailer(self):
         raise NotImplementedError
 
@@ -82,10 +85,7 @@ class PDFBaseXRef(object):
         raise KeyError(objid)
 
 
-##  PDFXRef
-##
 class PDFXRef(PDFBaseXRef):
-
     def __init__(self):
         self.offsets = {}
         self.trailer = {}
@@ -114,7 +114,7 @@ class PDFXRef(PDFBaseXRef):
                 (start, nobjs) = map(int, f)
             except ValueError:
                 raise PDFNoValidXRef('Invalid line: %r: line=%r' % (parser, line))
-            for objid in range(start, start+nobjs):
+            for objid in range(start, start + nobjs):
                 try:
                     (_, line) = parser.nextline()
                 except PSEOF:
@@ -157,10 +157,7 @@ class PDFXRef(PDFBaseXRef):
             raise
 
 
-##  PDFXRefFallback
-##
 class PDFXRefFallback(PDFXRef):
-
     def __repr__(self):
         return '<PDFXRefFallback: offsets=%r>' % (list(self.offsets.keys()))
 
@@ -178,7 +175,7 @@ class PDFXRefFallback(PDFXRef):
                 self.load_trailer(parser)
                 log.info('trailer: %r', self.trailer)
                 break
-            line=line.decode('latin-1') #default pdf encoding
+            line = line.decode('latin-1')  #default pdf encoding
             m = self.PDFOBJ_CUE.match(line)
             if not m:
                 continue
@@ -205,17 +202,14 @@ class PDFXRefFallback(PDFXRef):
                         objs.append(obj)
                 except PSEOF:
                     pass
-                n = min(n, len(objs)//2)
+                n = min(n, len(objs) // 2)
                 for index in range(n):
-                    objid1 = objs[index*2]
+                    objid1 = objs[index * 2]
                     self.offsets[objid1] = (objid, index, 0)
         return
 
 
-##  PDFXRefStream
-##
 class PDFXRefStream(PDFBaseXRef):
-
     def __init__(self):
         self.data = None
         self.entlen = None
@@ -240,11 +234,10 @@ class PDFXRefStream(PDFBaseXRef):
         self.ranges.extend(choplist(2, index_array))
         (self.fl1, self.fl2, self.fl3) = stream['W']
         self.data = stream.get_data()
-        self.entlen = self.fl1+self.fl2+self.fl3
+        self.entlen = self.fl1 + self.fl2 + self.fl3
         self.trailer = stream.attrs
-        log.info('xref stream: objid=%s, fields=%d,%d,%d',
-                 ', '.join(map(repr, self.ranges)),
-                 self.fl1, self.fl2, self.fl3)
+        log.info('xref stream: objid=%s, fields=%d,%d,%d', ', '.join(map(repr, self.ranges)), self.fl1, self.fl2,
+                 self.fl3)
         return
 
     def get_trailer(self):
@@ -254,16 +247,16 @@ class PDFXRefStream(PDFBaseXRef):
         for (start, nobjs) in self.ranges:
             for i in range(nobjs):
                 offset = self.entlen * i
-                ent = self.data[offset:offset+self.entlen]
+                ent = self.data[offset:offset + self.entlen]
                 f1 = nunpack(ent[:self.fl1], 1)
                 if f1 == 1 or f1 == 2:
-                    yield start+i
+                    yield start + i
         return
 
     def get_pos(self, objid):
         index = 0
         for (start, nobjs) in self.ranges:
-            if start <= objid and objid < start+nobjs:
+            if start <= objid and objid < start + nobjs:
                 index += objid - start
                 break
             else:
@@ -271,10 +264,10 @@ class PDFXRefStream(PDFBaseXRef):
         else:
             raise KeyError(objid)
         offset = self.entlen * index
-        ent = self.data[offset:offset+self.entlen]
+        ent = self.data[offset:offset + self.entlen]
         f1 = nunpack(ent[:self.fl1], 1)
-        f2 = nunpack(ent[self.fl1:self.fl1+self.fl2])
-        f3 = nunpack(ent[self.fl1+self.fl2:])
+        f2 = nunpack(ent[self.fl1:self.fl1 + self.fl2])
+        f3 = nunpack(ent[self.fl1 + self.fl2:])
         if f1 == 1:
             return (None, f2, f3)
         elif f1 == 2:
@@ -284,12 +277,9 @@ class PDFXRefStream(PDFBaseXRef):
             raise KeyError(objid)
 
 
-##  PDFSecurityHandler
-##
 class PDFStandardSecurityHandler(object):
 
-    PASSWORD_PADDING = (b'(\xbfN^Nu\x8aAd\x00NV\xff\xfa\x01\x08'
-                        b'..\x00\xb6\xd0h>\x80/\x0c\xa9\xfedSiz')
+    PASSWORD_PADDING = (b'(\xbfN^Nu\x8aAd\x00NV\xff\xfa\x01\x08' b'..\x00\xb6\xd0h>\x80/\x0c\xa9\xfedSiz')
     supported_revisions = (2, 3)
 
     def __init__(self, docid, param, password=''):
@@ -340,7 +330,7 @@ class PDFStandardSecurityHandler(object):
             hash.update(self.docid[0])  # 3
             result = ARC4.new(key).encrypt(hash.digest())  # 4
             for i in range(1, 20):  # 5
-                k = b''.join(bytes((c^i,)) for c in key)
+                k = b''.join(bytes((c ^ i, )) for c in key)
                 result = ARC4.new(k).encrypt(result)
             result += result  # 6
             return result
@@ -400,7 +390,7 @@ class PDFStandardSecurityHandler(object):
         else:
             user_password = self.o
             for i in range(19, -1, -1):
-                k = b''.join(bytes((c^i,)) for c in key)
+                k = b''.join(bytes((c ^ i, )) for c in key)
                 user_password = ARC4.new(k).decrypt(user_password)
         return self.authenticate_user_password(user_password)
 
@@ -416,7 +406,7 @@ class PDFStandardSecurityHandler(object):
 
 class PDFStandardSecurityHandlerV4(PDFStandardSecurityHandler):
 
-    supported_revisions = (4,)
+    supported_revisions = (4, )
 
     def init_params(self):
         super(PDFStandardSecurityHandlerV4, self).init_params()
@@ -467,7 +457,7 @@ class PDFStandardSecurityHandlerV4(PDFStandardSecurityHandler):
 
 class PDFStandardSecurityHandlerV5(PDFStandardSecurityHandlerV4):
 
-    supported_revisions = (5,)
+    supported_revisions = (5, )
 
     def init_params(self):
         super(PDFStandardSecurityHandlerV5, self).init_params()
@@ -510,10 +500,7 @@ class PDFStandardSecurityHandlerV5(PDFStandardSecurityHandlerV4):
         return AES.new(self.key, mode=AES.MODE_CBC, IV=data[:16]).decrypt(data[16:])
 
 
-##  PDFDocument
-##
 class PDFDocument(object):
-
     """PDFDocument object represents a PDF document.
 
     Since a PDF file can be very big, normally it is not loaded at
@@ -555,7 +542,7 @@ class PDFDocument(object):
             pos = self.find_xref(parser)
             self.read_xref_from(parser, pos, self.xrefs)
         except PDFNoValidXRef:
-            pass # fallback = True
+            pass  # fallback = True
         if fallback:
             parser.fallback = True
             xref = PDFXRefFallback()
@@ -568,8 +555,7 @@ class PDFDocument(object):
             # If there's an encryption info, remember it.
             if 'Encrypt' in trailer:
                 #assert not self.encryption, str(self.encryption)
-                self.encryption = (list_value(trailer['ID']),
-                                   dict_value(trailer['Encrypt']))
+                self.encryption = (list_value(trailer['ID']), dict_value(trailer['Encrypt']))
                 self._initialize_password(password)
             if 'Info' in trailer:
                 self.info.append(dict_value(trailer['Info']))
@@ -601,7 +587,7 @@ class PDFDocument(object):
         self.is_printable = handler.is_printable()
         self.is_modifiable = handler.is_modifiable()
         self.is_extractable = handler.is_extractable()
-        self._parser.fallback = False # need to read streams with exact length
+        self._parser.fallback = False  # need to read streams with exact length
         return
 
     def _getobj_objstm(self, stream, index, objid):
@@ -611,7 +597,7 @@ class PDFDocument(object):
             (objs, n) = self._get_objects(stream)
             if self.caching:
                 self._parsed_objs[stream.objid] = (objs, n)
-        i = n*2+index
+        i = n * 2 + index
         try:
             obj = objs[i]
         except IndexError:
@@ -714,12 +700,13 @@ class PDFDocument(object):
                     se = entry.get('SE')
                     yield (level, title, dest, action, se)
             if 'First' in entry and 'Last' in entry:
-                for x in search(entry['First'], level+1):
+                for x in search(entry['First'], level + 1):
                     yield x
             if 'Next' in entry:
                 for x in search(entry['Next'], level):
                     yield x
             return
+
         return search(self.catalog['Outlines'], 0)
 
     def lookup_name(self, cat, key):
@@ -745,6 +732,7 @@ class PDFDocument(object):
                     if v:
                         return v
             raise KeyError((cat, key))
+
         return lookup(d0)
 
     def get_dest(self, name):

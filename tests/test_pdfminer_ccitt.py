@@ -7,10 +7,8 @@ import logging
 
 from pdfminer.ccitt import *
 
-##  Test cases
-##
-class TestCCITTG4Parser():
 
+class TestCCITTG4Parser():
     def get_parser(self, bits):
         parser = CCITTG4Parser(len(bits))
         parser._curline = [int(c) for c in bits]
@@ -160,6 +158,7 @@ class TestCCITTG4Parser():
         parser._do_vertical(1)
         assert_equal(parser._get_bits(), '00000001')
         return
+
 
 if __name__ == '__main__':
     nose.runmodule()

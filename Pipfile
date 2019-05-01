@@ -5,6 +5,10 @@ verify_ssl = true
 
 [dev-packages]
 nose = "*"
+pytest = "*"
+flake8 = "*"
+twine = "*"
+yapf = "*"
 
 [packages]
 pycryptodome = "*"

@@ -9,13 +9,12 @@ import codecs
 
 
 class CMapConverter(object):
-
     def __init__(self, enc2codec={}):
         self.enc2codec = enc2codec
-        self.code2cid = {} # {'cmapname': ...}
+        self.code2cid = {}  # {'cmapname': ...}
         self.is_vertical = {}
-        self.cid2unichr_h = {} # {cid: unichr}
-        self.cid2unichr_v = {} # {cid: unichr}
+        self.cid2unichr_h = {}  # {cid: unichr}
+        self.cid2unichr_v = {}  # {cid: unichr}
         return
 
     def get_encs(self):
@@ -27,7 +26,7 @@ class CMapConverter(object):
         elif enc == 'H':
             (hmapenc, vmapenc) = ('H', 'V')
         else:
-            (hmapenc, vmapenc) = (enc+'-H', enc+'-V')
+            (hmapenc, vmapenc) = (enc + '-H', enc + '-V')
         if hmapenc in self.code2cid:
             hmap = self.code2cid[hmapenc]
         else:
@@ -83,7 +82,7 @@ class CMapConverter(object):
 
             def pick(unimap):
                 chars = list(unimap.items())
-                chars.sort(key=(lambda x:(x[1], -ord(x[0]))), reverse=True)
+                chars.sort(key=(lambda x: (x[1], -ord(x[0]))), reverse=True)
                 (c, _) = chars[0]
                 return c
 
@@ -148,7 +147,7 @@ class CMapConverter(object):
         fp.write(pickle.dumps(data, 2))
         return
 
-# main
+
 def main(argv):
     import getopt
     import gzip
@@ -157,6 +156,7 @@ def main(argv):
     def usage():
         print(('usage: %s [-c enc=codec] output_dir regname [cid2code.txt ...]' % argv[0]))
         return 100
+
     try:
         (opts, args) = getopt.getopt(argv[1:], 'c:')
     except getopt.GetoptError:
@@ -193,5 +193,6 @@ def main(argv):
     converter.dump_unicodemap(fp)
     fp.close()
     return
+
 
 if __name__ == '__main__': sys.exit(main(sys.argv))

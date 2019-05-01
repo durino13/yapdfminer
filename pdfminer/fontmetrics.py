@@ -1,18 +1,12 @@
-
-
-""" Font metrics for the Adobe core 14 fonts.
+"""Font metrics for the Adobe core 14 fonts.
 
 Font metrics are used to compute the boundary of each character
 written with a proportional font.
 
 The following data were extracted from the AFM files:
-
   http://www.ctan.org/tex-archive/fonts/adobe/afm/
-
 """
-
 ###  BEGIN Verbatim copy of the license part
-
 #
 # Adobe Core 35 AFM Files with 314 Glyph Entries - ReadMe
 #
@@ -25,7 +19,6 @@ The following data were extracted from the AFM files:
 # paragraph is not modified. Adobe Systems has no responsibility or
 # obligation to support the use of the AFM files.
 #
-
 ###  END Verbatim copy of the license part
 
 FONT_METRICS = {

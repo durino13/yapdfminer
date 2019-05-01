@@ -1,4 +1,3 @@
-
 import zlib
 import logging
 from .lzw import lzwdecode
@@ -12,7 +11,6 @@ from .psparser import LIT
 from . import settings
 from .utils import apply_png_predictor
 from .utils import isnumber
-
 
 log = logging.getLogger(__name__)
 
@@ -28,31 +26,31 @@ LITERALS_CCITTFAX_DECODE = (LIT('CCITTFaxDecode'), LIT('CCF'))
 LITERALS_DCT_DECODE = (LIT('DCTDecode'), LIT('DCT'))
 
 
-##  PDF Objects
-##
 class PDFObject(PSObject):
     pass
+
 
 class PDFException(PSException):
     pass
 
+
 class PDFTypeError(PDFException):
     pass
+
 
 class PDFValueError(PDFException):
     pass
 
+
 class PDFObjectNotFound(PDFException):
     pass
+
 
 class PDFNotImplementedError(PDFException):
     pass
 
 
-##  PDFObjRef
-##
 class PDFObjRef(PDFObject):
-
     def __init__(self, doc, objid, _):
         if objid == 0:
             if settings.STRICT:
@@ -72,7 +70,6 @@ class PDFObjRef(PDFObject):
             return default
 
 
-# resolve
 def resolve1(x, default=None):
     """Resolves an object.
 
@@ -178,10 +175,7 @@ def stream_value(x):
     return x
 
 
-##  PDFStream type
-##
 class PDFStream(PDFObject):
-
     def __init__(self, attrs, rawdata, decipher=None):
         assert isinstance(attrs, dict), str(type(attrs))
         self.attrs = attrs
@@ -238,7 +232,7 @@ class PDFStream(PDFObject):
             if hasattr(fltr, 'resolve'):
                 fltr = fltr.resolve()[0]
             _filters.append(fltr)
-        return list(zip(_filters, params)) #solves https://github.com/pdfminer/pdfminer.six/issues/15
+        return list(zip(_filters, params))  #solves https://github.com/pdfminer/pdfminer.six/issues/15
 
     def decode(self):
         assert self.data is None and self.rawdata is not None, str((self.data, self.rawdata))

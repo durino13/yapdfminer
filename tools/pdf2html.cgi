@@ -31,22 +31,24 @@ from pdfminer.layout import LAParams
 def q(x):
     return x.replace('&', '&amp;').replace('>', '&gt;').replace('<', '&lt;').replace('"', '&quot;')
 
+
 # encode parameters as a URL
 Q = re.compile(r'[^a-zA-Z0-9_.-=]')
+
+
 def url(base, **kw):
     r = []
     for (k, v) in list(kw.items()):
         v = Q.sub(lambda m: '%%%02X' % ord(m.group(0)), encoder(q(v), 'replace')[0])
         r.append('%s=%s' % (k, v))
-    return base+'&'.join(r)
+    return base + '&'.join(r)
 
 
-##  convert
-##
-class FileSizeExceeded(ValueError): pass
-def convert(infp, outfp, path, codec='utf-8',
-            maxpages=0, maxfilesize=0, pagenos=None,
-            html=True):
+class FileSizeExceeded(ValueError):
+    pass
+
+
+def convert(infp, outfp, path, codec='utf-8', maxpages=0, maxfilesize=0, pagenos=None, html=True):
     # save the input file.
     src = open(path, 'wb')
     nbytes = 0
@@ -64,8 +66,7 @@ def convert(infp, outfp, path, codec='utf-8',
     rsrcmgr = PDFResourceManager()
     laparams = LAParams()
     if html:
-        device = HTMLConverter(rsrcmgr, outfp, codec=codec, laparams=laparams,
-                               layoutmode='exact')
+        device = HTMLConverter(rsrcmgr, outfp, codec=codec, laparams=laparams, layoutmode='exact')
     else:
         device = TextConverter(rsrcmgr, outfp, codec=codec, laparams=laparams)
     fp = open(path, 'rb')
@@ -77,16 +78,13 @@ def convert(infp, outfp, path, codec='utf-8',
     return
 
 
-##  WebApp
-##
 class WebApp(object):
 
     TITLE = 'pdf2html demo'
-    MAXFILESIZE = 10000000             # set to zero if unlimited.
-    MAXPAGES = 100                     # set to zero if unlimited.
+    MAXFILESIZE = 10000000  # set to zero if unlimited.
+    MAXPAGES = 100  # set to zero if unlimited.
 
-    def __init__(self, infp=sys.stdin, outfp=sys.stdout, environ=os.environ,
-                 codec='utf-8', apppath='/'):
+    def __init__(self, infp=sys.stdin, outfp=sys.stdout, environ=os.environ, codec='utf-8', apppath='/'):
         self.infp = infp
         self.outfp = outfp
         self.environ = environ
@@ -135,21 +133,22 @@ class WebApp(object):
 
     def coverpage(self):
         self.put(
-          '<html><head><title>%s</title></head><body>\n' % q(self.TITLE),
-          '<h1>%s</h1><hr>\n' % q(self.TITLE),
-          '<form method="POST" action="%s" enctype="multipart/form-data">\n' % q(self.apppath),
-          '<p>Upload PDF File: <input name="f" type="file" value="">\n',
-          '&nbsp; Page numbers (comma-separated):\n',
-          '<input name="p" type="text" size="10" value="">\n',
-          '<p>(Text extraction is limited to maximum %d pages.\n' % self.MAXPAGES,
-          'Maximum file size for input is %d bytes.)\n' % self.MAXFILESIZE,
-          '<p><input type="submit" name="c" value="Convert to HTML">\n',
-          '<input type="submit" name="c" value="Convert to TEXT">\n',
-          '<input type="reset" value="Reset">\n',
-          '</form><hr>\n',
-          '<p>Powered by <a href="http://www.unixuser.org/~euske/python/pdfminer/">pdfminer</a>-%s\n' % pdfminer.__version__,
-          '</body></html>\n',
-          )
+            '<html><head><title>%s</title></head><body>\n' % q(self.TITLE),
+            '<h1>%s</h1><hr>\n' % q(self.TITLE),
+            '<form method="POST" action="%s" enctype="multipart/form-data">\n' % q(self.apppath),
+            '<p>Upload PDF File: <input name="f" type="file" value="">\n',
+            '&nbsp; Page numbers (comma-separated):\n',
+            '<input name="p" type="text" size="10" value="">\n',
+            '<p>(Text extraction is limited to maximum %d pages.\n' % self.MAXPAGES,
+            'Maximum file size for input is %d bytes.)\n' % self.MAXFILESIZE,
+            '<p><input type="submit" name="c" value="Convert to HTML">\n',
+            '<input type="submit" name="c" value="Convert to TEXT">\n',
+            '<input type="reset" value="Reset">\n',
+            '</form><hr>\n',
+            '<p>Powered by <a href="http://www.unixuser.org/~euske/python/pdfminer/">pdfminer</a>-%s\n' %
+            pdfminer.__version__,
+            '</body></html>\n',
+        )
         return
 
     def setup(self):
@@ -165,9 +164,7 @@ class WebApp(object):
 
     def convert(self):
         form = cgi.FieldStorage(fp=self.infp, environ=self.environ)
-        if (self.method != 'POST' or
-            'c' not in form or
-            'f' not in form):
+        if (self.method != 'POST' or 'c' not in form or 'f' not in form):
             self.response_200()
             self.coverpage()
             return
@@ -194,8 +191,15 @@ class WebApp(object):
                 self.content_type = 'text/plain; charset=%s' % self.codec
             self.response_200()
             try:
-                convert(item.file, self.outfp, tmppath, pagenos=pagenos, codec=self.codec,
-                        maxpages=self.MAXPAGES, maxfilesize=self.MAXFILESIZE, html=html)
+                convert(
+                    item.file,
+                    self.outfp,
+                    tmppath,
+                    pagenos=pagenos,
+                    codec=self.codec,
+                    maxpages=self.MAXPAGES,
+                    maxfilesize=self.MAXFILESIZE,
+                    html=html)
             except Exception as e:
                 self.put('<p>Sorry, an error has occurred: %s' % q(repr(e)))
                 self.logger.error('convert: %r: path=%r: %s' % (e, traceback.format_exc()))
