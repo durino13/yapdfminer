@@ -7,8 +7,9 @@ path = os.path.dirname(os.path.abspath(__file__)) + '/'
 
 
 def run(datapath, filename, options=None):
+    outputpath = '../tmp/'
     i = path + datapath + filename + '.pdf'
-    o = path + filename + '.txt'
+    o = path + outputpath + filename + '.txt'
     if options:
         s = 'pdf2txt -o%s %s %s' % (o, options, i)
     else:

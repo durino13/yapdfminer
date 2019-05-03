@@ -6,8 +6,9 @@ path = os.path.dirname(os.path.abspath(__file__)) + '/'
 
 
 def run(datapath, filename, options=None):
+    outputpath = '../tmp/'
     i = path + datapath + filename + '.pdf'
-    o = path + filename + '.xml'
+    o = path + outputpath + filename + '.xml'
     if options:
         s = 'dumppdf -o%s %s %s' % (o, options, i)
     else:
