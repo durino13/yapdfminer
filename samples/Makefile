@@ -1,25 +1,23 @@
-# GNUMakefile for test
-
-RM=rm -f
 CMP=:
-ECHO=echo
 
 PDF2TXT=PYTHONPATH=.. ../tools/pdf2txt.py -p1 -V
 
 FREE= \
 	simple1 \
-	simple2 \
-	simple3 \
-	jo
+	simple2
+	# Removed: require CJK support:
+	# simple3
+	# jo
 
 NONFREE= \
 	nonfree/dmca \
 	nonfree/f1040nr \
 	nonfree/i1040nr \
-	nonfree/kampo \
 	nonfree/naacl06-shinyama \
-	nonfree/nlp2004slides \
 	nonfree/one-byte-identity
+	# Removed: require CJK support:
+	# nonfree/kampo
+	# nonfree/nlp2004slides
 
 TESTS=$(FREE) $(NONFREE)
 
@@ -34,42 +32,37 @@ CRYPTS= \
 	encryption/aes-256 \
 	encryption/aes-256-m
 
-all: tests crypts privates
+all: privatepdfs tests crypts
+
+privatepdfs:
+	@[ -d ../tmp/private ] || mkdir ../tmp/private
+	@for i in private/*.pdf; do \
+		echo $$i; \
+		$(PDF2TXT) -t text -o ../tmp/$$i.txt $$i || exit 1; \
+	done
 
 tests:
-	for i in $(TESTS); do \
-		$(ECHO) $$i; \
-		$(PDF2TXT) -t html -o $$i.html $$i.pdf || exit 1; \
-		$(CMP) $$i.html.ref $$i.html || exit 1; \
-		$(PDF2TXT) -t xml -o $$i.xml $$i.pdf || exit 1; \
-		$(CMP) $$i.xml.ref $$i.xml || exit 1; \
-		$(PDF2TXT) -t text -o $$i.txt $$i.pdf || exit 1; \
-		$(CMP) $$i.txt.ref $$i.txt || exit 1; \
+	@[ -d ../tmp ] || mkdir ../tmp
+	@[ -d ../tmp/nonfree ] || mkdir ../tmp/nonfree
+	@for i in $(TESTS); do \
+		echo $$i; \
+		$(PDF2TXT) -t html -o ../tmp/$$i.html $$i.pdf || exit 1; \
+		$(CMP) $$i.html.ref ../tmp/$$i.html || exit 1; \
+		$(PDF2TXT) -t xml -o ../tmp/$$i.xml $$i.pdf || exit 1; \
+		$(CMP) $$i.xml.ref ../tmp/$$i.xml || exit 1; \
+		$(PDF2TXT) -t text -o ../tmp/$$i.txt $$i.pdf || exit 1; \
+		$(CMP) $$i.txt.ref ../tmp/$$i.txt || exit 1; \
 	done
 
 crypts:
-	for i in $(CRYPTS); do \
-		$(ECHO) $$i; \
-		$(PDF2TXT) -t xml -P $(CRYPT_PASS1) -o $$i.1.xml $$i.pdf || exit 1; \
-		$(CMP) $(CRYPT_BASE).xml $$i.1.xml || exit 1; \
-		$(PDF2TXT) -t xml -P $(CRYPT_PASS2) -o $$i.2.xml $$i.pdf || exit 1; \
-		$(CMP) $$i.2.xml $(CRYPT_BASE).xml || exit 1; \
-	done
-
-privates:
-	for i in private/*.pdf; do \
-		$(ECHO) $$i; \
-		$(PDF2TXT) -t text -o $$i.txt $$i || exit 1; \
+	@[ -d ../tmp/encryption ] || mkdir ../tmp/encryption
+	@for i in $(CRYPTS); do \
+		echo $$i; \
+		$(PDF2TXT) -t xml -P $(CRYPT_PASS1) -o ../tmp/$$i.1.xml $$i.pdf || exit 1; \
+		$(CMP) $(CRYPT_BASE).xml ../tmp/$$i.1.xml || exit 1; \
+		$(PDF2TXT) -t xml -P $(CRYPT_PASS2) -o ../tmp/$$i.2.xml $$i.pdf || exit 1; \
+		$(CMP) ../tmp/$$i.2.xml $(CRYPT_BASE).xml || exit 1; \
 	done
 
 test:
-	$(MAKE) all CMP='git diff --no-index --no-prefix'
-
-clean:
-	-for i in $(TESTS); do \
-		$(RM) $$i.html $$i.xml $$i.txt; \
-	done
-	-for i in $(CRYPTS); do \
-		$(RM) $$i.1.xml $$i.2.xml; \
-	done
-	rm private/*.txt
+	make all CMP='git diff --no-index --no-prefix'
