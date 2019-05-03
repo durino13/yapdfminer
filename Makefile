@@ -1,64 +1,41 @@
-##  Makefile (for maintenance purpose)
-##
+all: help
 
-PACKAGE=pdfminer
+help:
+	@echo "version      - Display the current version from setup.py."
+	@echo "test         - Run nose and sample tests."
+	@echo "tag          - git tag and push. Supply the tag in an env var, like TAG=1.2.3."
+	@echo "clean        - Remove build artifacts."
+	@echo "build        - Generate the distribution packages."
+	@echo "publish      - Publish to PyPI."
 
-RM=rm -f
-CP=cp -f
-MKDIR=mkdir
-
-all:
-
-install:
-	python3 setup.py install --home=$(HOME)
-
-clean:
-	-python3 setup.py clean
-	-$(RM) -r build dist MANIFEST
-	-cd $(PACKAGE) && $(MAKE) clean
-	-cd tools && $(MAKE) clean
-	-cd samples && $(MAKE) clean
-
-distclean: clean cmap_clean
-
-sdist: distclean MANIFEST.in
-	python3 setup.py sdist
-register: distclean MANIFEST.in
-	python3 setup.py sdist upload register
-
-WEBDIR=../euske.github.io/$(PACKAGE)
-publish:
-	$(CP) docs/*.html docs/*.png docs/*.css $(WEBDIR)
-
-CONV_CMAP=python3 tools/conv_cmap.py
-CMAPSRC=cmaprsrc
-CMAPDST=pdfminer/cmap
-cmap: $(CMAPDST)/to-unicode-Adobe-CNS1.pickle.gz $(CMAPDST)/to-unicode-Adobe-GB1.pickle.gz \
-	$(CMAPDST)/to-unicode-Adobe-Japan1.pickle.gz $(CMAPDST)/to-unicode-Adobe-Korea1.pickle.gz
-cmap_clean:
-	-$(RM) -r $(CMAPDST)
-$(CMAPDST):
-	$(MKDIR) $(CMAPDST)
-$(CMAPDST)/to-unicode-Adobe-CNS1.pickle.gz: $(CMAPDST)
-	$(CONV_CMAP) -c B5=cp950 -c UniCNS-UTF8=utf-8 \
-		$(CMAPDST) Adobe-CNS1 $(CMAPSRC)/cid2code_Adobe_CNS1.txt
-$(CMAPDST)/to-unicode-Adobe-GB1.pickle.gz: $(CMAPDST)
-	$(CONV_CMAP) -c GBK-EUC=cp936 -c UniGB-UTF8=utf-8 \
-		$(CMAPDST) Adobe-GB1 $(CMAPSRC)/cid2code_Adobe_GB1.txt
-$(CMAPDST)/to-unicode-Adobe-Japan1.pickle.gz: $(CMAPDST)
-	$(CONV_CMAP) -c RKSJ=cp932 -c EUC=euc-jp -c UniJIS-UTF8=utf-8 \
-		$(CMAPDST) Adobe-Japan1 $(CMAPSRC)/cid2code_Adobe_Japan1.txt
-$(CMAPDST)/to-unicode-Adobe-Korea1.pickle.gz: $(CMAPDST)
-	$(CONV_CMAP) -c KSC-EUC=euc-kr -c KSC-Johab=johab -c KSCms-UHC=cp949 -c UniKS-UTF8=utf-8 \
-		$(CMAPDST) Adobe-Korea1 $(CMAPSRC)/cid2code_Adobe_Korea1.txt
+version:
+	python3 setup.py --version
 
 test: test-nose test-samples test-clean
 
-test-nose:: cmap
+test-nose::
+	@[ -d tmp ] || mkdir tmp
 	nosetests
 
-test-samples: cmap
-	cd samples && $(MAKE) test
+test-samples:
+	cd samples && make test
 
-test-clean:
-	rm tests/*.txt tests/*.xml
+tag:
+	git tag $(TAG)
+	git push --tags
+
+clean: clean-pyc clean-build
+	-cd tools && make clean
+
+clean-pyc:
+	-find . -type f -a \( -name "*.pyc" -o -name "*$$py.class" \) | xargs rm
+	-find . -type d -name "__pycache__" | xargs rm -r
+
+clean-build:
+	rm -rf build/ dist/ .eggs/ *.egg-info/
+
+build:
+	python3 setup.py sdist bdist_wheel
+
+publish:
+	python3 -m twine upload dist/*

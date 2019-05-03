@@ -32,7 +32,8 @@ setuptools.setup(
         'layout analysis',
         'text mining',
     ],
-    packages=setuptools.find_packages(exclude=['cmaprsrc', 'docs', 'samples', 'tests', 'tools']),
+    packages=setuptools.find_packages(exclude=['cmaprsrc', 'docs', 'samples', 'tests']),
+    include_package_data=True,
     python_requires='>=3.7',
     install_requires=[
         'chardet ~= 3.0',
