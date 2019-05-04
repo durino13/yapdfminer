@@ -11,7 +11,7 @@ help:
 version:
 	python3 setup.py --version
 
-test: test-nose test-samples test-clean
+test: test-nose test-samples
 
 test-nose::
 	@[ -d tmp ] || mkdir tmp
