@@ -3,11 +3,14 @@ import os
 import os.path
 from io import BytesIO
 from typing import BinaryIO, List
+
+from .jbig2 import JBIG2StreamReader, JBIG2StreamWriter
 from .layout import LTImage
-from .pdftypes import LITERALS_DCT_DECODE
+from .pdfcolor import LITERAL_DEVICE_CMYK
 from .pdfcolor import LITERAL_DEVICE_GRAY
 from .pdfcolor import LITERAL_DEVICE_RGB
-from .pdfcolor import LITERAL_DEVICE_CMYK
+from .pdftypes import LITERALS_DCT_DECODE
+from .pdftypes import LITERALS_JBIG2_DECODE
 
 
 def align32(x):
@@ -54,15 +57,25 @@ class BMPWriter(object):
 
 
 def is_jpeg(image: LTImage) -> bool:
-    """Checks if the image is encoded in JPEG format."""
+    """Checks if the image is encoded in the JPEG format."""
     filters = image.stream.get_filters()
     return len(filters) == 1 and filters[0][0] in LITERALS_DCT_DECODE
+
+
+def is_jbig2(image: LTImage) -> bool:
+    """Checks if the image is encoded in the JBIG2 format."""
+    for name, _ in image.stream.get_filters():
+        if name in LITERALS_JBIG2_DECODE:
+            return True
+    return False
 
 
 def image_filename(image: LTImage) -> str:
     """Returns a filename for the image, based on its name and encoding."""
     if is_jpeg(image):
         return f'{image.name}.jpg'
+    if is_jbig2(image):
+        return f'{image.name}.jb2'
     width, height = image.srcsize
     if (image.bits == 1 or image.bits == 8 and
             (LITERAL_DEVICE_RGB in image.colorspace or LITERAL_DEVICE_GRAY in image.colorspace)):
@@ -92,6 +105,13 @@ def dump_image(image: LTImage, fp: BinaryIO):
             i.save(fp, 'JPEG')
         else:
             fp.write(raw_data)
+    elif is_jbig2(image):
+        input_stream = BytesIO()
+        input_stream.write(image.stream.get_data())
+        input_stream.seek(0)
+        reader = JBIG2StreamReader(input_stream)
+        writer = JBIG2StreamWriter(fp)
+        writer.write_file(reader.get_segments())
     elif image.bits == 1:
         bmp = BMPWriter(fp, 1, width, height)
         data = image.stream.get_data()
