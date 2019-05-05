@@ -38,7 +38,7 @@ privatepdfs:
 	@[ -d ../tmp/private ] || mkdir ../tmp/private
 	@for i in private/*.pdf; do \
 		echo $$i; \
-		$(PDF2TXT) -t text -o ../tmp/$$i.txt -O ../tmp $$i || exit 1; \
+		$(PDF2TXT) -t text -o ../tmp/$$i.txt -O ../tmp/private $$i || exit 1; \
 	done
 
 tests:
