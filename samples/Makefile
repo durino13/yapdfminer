@@ -1,6 +1,6 @@
 CMP=:
 
-PDF2TXT=PYTHONPATH=.. ../tools/pdf2txt.py -p1 -V
+PDF2TXT=PYTHONPATH=.. ../tools/pdf2txt.py -V
 
 FREE= \
 	simple1 \
