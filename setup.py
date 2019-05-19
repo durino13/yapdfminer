@@ -37,6 +37,7 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=[
         'chardet ~= 3.0',
+        'Pillow ~= 6.0',
         'pycryptodome ~= 3.8',
         'sortedcontainers ~= 2.1',
     ],
