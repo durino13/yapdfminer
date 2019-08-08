@@ -951,12 +951,16 @@ class PDFCIDFont(PDFFont):
                 raise PDFFontError('Encoding is unspecified')
             name = 'unknown'
         if type(name) is PDFStream:
-            if 'CMapName' in name:
+            if 'CMapName' in str(name):
                 name = name.get('CMapName').name
                 if name == 'DLIdent-H':
                     name = 'Identity-H'
                 elif name == 'DLIdent-V':
                     name = 'Identity-V'
+                elif name == 'OneByteIdentityH':
+                    name = 'OneByteIdentityH'
+                elif name == 'OneByteIdentityV':
+                    name = 'OneByteIdentityV'
             else:
                 if strict:
                     raise PDFFontError('Encoding is unspecified')
