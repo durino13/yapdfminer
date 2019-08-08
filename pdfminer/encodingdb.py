@@ -3,7 +3,7 @@ from .psparser import PSLiteral
 from .glyphlist import glyphname2unicode
 from .latin_enc import ENCODING
 
-STRIP_NAME = re.compile(r'[0-9]+')
+STRIP_NAME = re.compile(r'[0-9A-Fa-f]+')
 
 
 def name2unicode(name):
@@ -29,7 +29,7 @@ def name2unicode(name):
     m = STRIP_NAME.search(name)
     if not m:
         raise KeyError(name)
-    return chr(int(m.group(0)))
+    return chr(int(m.group(0), 16))
 
 
 class EncodingDB(object):
