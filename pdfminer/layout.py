@@ -1,3 +1,33 @@
+""" (Set your editor width to 120 to see this properly)
+The layout class hierarchy:                                           LTItem                 LTText
+                                                                         |                      |
+                                                               +---------+--------+  +----------+---------+
+                                                               |                   \/                     |
+                                                          LTComponent            LTAnno                   |
+                                                               |                                          |
+                                    +--------------------------+--------------------------+               |
+                                    |                          |                          |               |
+            +-----------------------+-----------+              +-------------+            +-------+-------+
+            |                                   |                            |                    |       |
+         LTCurve                             LTImage                    LTContainer             LTChar    |
+            |                                                                |                            |
+    +-------+-------+                   +----------------------+-------------+----------+                 |
+    |               |                   |                                               |                 |
+ LTLine          LTRect         LTLayoutContainer                               LTExpandableContainer     |
+                                        |                                               |                 |
+                                +-------+-------+              +------------------------+-----------------+
+                                |               |              |
+                            LTFigure         LTPage      LTTextContainer
+                                                               |
+                    +------------------------------------------+--------------------------------------+
+                    |                                          |                                      |
+                LTTextLine                                 LTTextBox                             LTTextGroup
+                    |                                          |                                      |
+         +----------+----------+                     +---------+---------+                   +--------+-------+
+         |                     |                     |                   |                   |                |
+LTTextLineHorizontal  LTTextLineVertical    LTTextBoxHorizontal  LTTextBoxVertical    LTTextGroupLRTB  LTTextGroupTBRL
+
+"""
 from sortedcontainers import SortedListWithKey
 
 from .utils import INF
